@@ -1,4 +1,3 @@
-
 library(tidyverse)
 
 # load in the data
@@ -30,20 +29,17 @@ ipip <- read_csv('ipip50_sample.csv')
 # columns for different measures) and we need it in long format. Convert
 # to long format with a gather command on the trait items (A_1...O_10):
 # **HINT: The long format data set should have 42000 rows**
-ipip.l <- ipip %>% 
-  ...
+ipip.l <- ipip %>% gather (A_1:O_10, key=trait_item, value=value)
 
 # We need a column that identifies rows as belonging to a specific trait,
 # but the column you created based on the trait items includes both trait
 # and item (e.g., A_1, but we want A in a separate column from item 1).
 # Make this happen with a separate command:
-ipip.l <- ipip.l %>% 
-  ...
+ipip.l <- ipip.l %>% separate(trait_item, into=c("trait", "item"), sep="_")
 
 # Calculate averages for each participant (coded as RID) and trait:
-ipip.comp <- ipip.l %>% 
-  ...
-
+ipip.comp <- ipip.l %>% group_by(RID,trait) %>% 
+                        summarise(med=mean(value))
 
 # Cleaning up the other variables -----------------------------------------
 
@@ -53,16 +49,18 @@ ipip.comp <- ipip.l %>%
 # ipip.comp tibble:
 # HINT: use a select call on ipip to only select the columns that you want to
 # merge with ipip.comp
-ipip.comp <- ipip %>% 
-  ...
+ipip.comp <- ipip %>% select("RID":"exer") %>% left_join(ipip.comp)
+
 
 # One last thing, our exercise variable is all out of order. Because it was read
 # in as a character string, it is in alphabetical order. Let's turn it into a 
 # factor and reorder the levels according to increasing frequency. Do this by 
 # using the factor command and its levels argument:
-ipip.comp$exer <- ...
+ipip.comp$exer <- factor(ipip.comp$exer,
+                         levels = c("veryRarelyNever", "less1mo", "less1wk", "1or2wk", "3or5wk", "more5wk")
+)
 
-
+levels(ipip.comp$exer)
 
 # Analyze the data! -------------------------------------------------------
 
@@ -70,7 +68,9 @@ ipip.comp$exer <- ...
 # Calculate both the mean (use the new variable name 'avg') and standard error
 # of the mean (i.e., standard deviation divided by the square root of the 
 # number of participants; use variable name 'sem'):
-exer.avg <- ipip.comp %>% 
+exer.avg <- ipip.comp %>%
+  summarise(mean(exer))
+  
   ...
 
 # If you properly created the exer.avg tibble above, the following code will 
